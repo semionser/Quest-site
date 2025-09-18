@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Редактирование уровня</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body {
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    background: linear-gradient(to bottom, #e6f0ff, #ffffff);
+    padding-top: 40px;
+}
+
+.container {
+    position: relative;
+    background: #ffffff;
+    padding: 30px 20px;
+    border-radius: 20px;
+    width: 95%;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+h1 { font-size: 28px; margin-bottom: 20px; color: #003366; }
+h2 { font-size: 22px; margin: 25px 0 15px; color: #0055aa; }
+
+ul { list-style: none; margin-bottom: 20px; padding:0; }
+
+ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background: #e6f0ff;
+    color: #003366;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+ul li:hover { background: #cce0ff; }
+
+ul li a, ul li form button {
+    color: #0044aa;
+    text-decoration: none;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+ul li form button:hover, ul li a:hover { text-decoration: underline; }
+
+form input[type="text"] {
+    width: 100%;
+    padding: 14px 12px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    border: 1px solid #99bbff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+form input[type="text"]:focus {
+    border-color: #0055aa;
+    box-shadow: 0 0 10px rgba(0,85,170,0.3);
+}
+
+form label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #003366;
+    margin-bottom: 15px;
+}
+
+form label input { margin-right: 8px; }
+
+form button.submit-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #0055aa;
+    font-size: 18px;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+form button.submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,85,170,0.3);
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 15px;
+    color: #0044aa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-btn:hover { text-decoration: underline; }
+
+.flash {
+    margin-bottom: 15px;
+    list-style: none;
+    padding: 10px;
+    background: #cce0ff;
+    border-radius: 10px;
+    color: #003366;
+}
+
+@media (max-width:480px){
+    h1{ font-size:24px; }
+    h2{ font-size:20px; }
+    form input, form button.submit-btn{ padding:12px; font-size:16px; }
+    ul li { font-size:14px; padding:8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Редактирование уровня "{{ level.code }}"</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash">
+          {% for msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <input type="text" name="code" placeholder="Код уровня" value="{{ level.code }}" required>
+        <input type="text" name="text" placeholder="Текст задания" value="{{ level.text }}" required>
+        <input type="text" name="next_code" placeholder="Код следующего уровня" value="{{ level.next_code }}">
+        <label><input type="checkbox" name="is_final" {% if level.is_final %}checked{% endif %}> Финальный уровень</label>
+        <button type="submit" class="submit-btn">Сохранить изменения</button>
+    </form>
+
+    <form method="post" action="{{ url_for('admin_delete_level', level_id=level.id) }}">
+        <button type="submit" class="submit-btn" style="background:#aa0000;">Удалить уровень</button>
+    </form>
+
+    <a href="{{ url_for('admin_levels', quest_id=level.quest_id) }}" class="back-btn">← Назад к уровням</a>
+</div>
+
+</body>
+</html>

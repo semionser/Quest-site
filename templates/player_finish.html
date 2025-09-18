@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Финал</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body {
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(to bottom, #fdf6f0, #ffeef5);
+    overflow: visible; /* для конфетти */
+    position: relative;
+}
+
+.container {
+    position: relative;
+    background: #fff9f7;
+    padding: 30px 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    z-index: 10; /* выше конфетти */
+}
+
+h1 { font-size: 28px; margin-bottom: 20px; color: #555; }
+p { font-size: 18px; margin-bottom: 20px; color: #444; }
+.time { font-size: 20px; font-weight: bold; color: #ff6f61; margin-bottom: 30px; }
+
+.confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    background: red;
+    opacity: 0.8;
+    border-radius: 50%;
+    animation: fall linear infinite;
+    z-index: 5;
+}
+
+@keyframes fall {
+    0% { transform: translateY(0) rotate(0deg); opacity:1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity:0; }
+}
+
+@media (max-width:480px){
+    h1{ font-size:24px; }
+    p{ font-size:16px; }
+    .time{ font-size:18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Поздравляем!</h1>
+    <p>{{ finish_text }}</p>
+    <div class="time">Время прохождения: <span id="elapsed">{{ elapsed }}</span> сек</div>
+</div>
+
+<script>
+// Генерация конфетти
+const confettiCount = 80;
+for(let i=0;i<confettiCount;i++){
+    let c = document.createElement('div');
+    c.className='confetti';
+    c.style.left = Math.random()*100 + 'vw';
+    let size = 6 + Math.random()*12;
+    c.style.width = c.style.height = size + 'px';
+    c.style.background = hsl(${Math.random()*360},70%,80%);
+    c.style.animationDuration = (3 + Math.random()*3) + 's';
+    c.style.animationDelay = Math.random()*2 + 's';
+    document.body.appendChild(c);
+}
+</script>
+
+</body>
+</html>

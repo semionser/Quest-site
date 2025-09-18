@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Начало квеста</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #333;
+        position: relative;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 30px 20px;
+        border-radius: 20px;
+        text-align: center;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+        font-size: 28px;
+        margin-bottom: 25px;
+        color: #555;
+    }
+
+    form input {
+        width: 100%;
+        padding: 15px 10px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+        background: #fff;
+        color: #555;
+    }
+
+    form input:focus {
+        box-shadow: 0 0 10px rgba(200,200,200,0.5);
+        border-color: #ffb6b9;
+    }
+
+    form button {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        background: #ffd1dc;
+        font-size: 18px;
+        color: #555;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    form button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .admin-link {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+        color: rgba(85,85,85,0.3);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .admin-link:hover {
+        color: rgba(85,85,85,0.7);
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(-20px);}
+        100% { opacity: 1; transform: translateY(0);}
+    }
+
+    @media (max-width: 480px) {
+        h1 { font-size: 24px; }
+        form input, form button { padding: 12px; font-size: 16px; }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Начало квеста</h1>
+    <form method="post">
+        <input type="text" name="start_code" placeholder="Введите стартовый код" required>
+        <button type="submit">Старт</button>
+    </form>
+</div>
+
+<!-- Скрытая кнопка для админа -->
+<a href="{{ url_for('admin_login') }}" class="admin-link">Admin</a>
+
+</body>
+</html>

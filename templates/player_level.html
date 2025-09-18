@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Задание</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body {
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: #f0f4f8;
+    color: #333;
+    overflow: hidden;
+    position: relative;
+}
+
+.container {
+    position: relative;
+    background: #fff9f7;
+    padding: 30px 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    z-index: 10; /* выше смайликов */
+}
+
+h1 { font-size: 26px; margin-bottom: 20px; color: #555; }
+p { font-size: 18px; margin-bottom: 30px; line-height: 1.6; color: #444; }
+
+.timer {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6f61;
+    margin-bottom: 30px;
+    background: #fff3e6;
+    padding: 10px 20px;
+    border-radius: 15px;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    animation: pulse 1.5s infinite;
+}
+
+.smile {
+    position: absolute;
+    top: -30px;
+    font-size: 16px;
+    opacity: 0.5;
+    animation: fall linear infinite;
+    z-index: 1;
+}
+
+@keyframes fall {
+    0% { top: -30px; transform: rotate(0deg); opacity: 0.5; }
+    100% { top: 110%; transform: rotate(360deg); opacity: 0; }
+}
+
+.cross {
+    position: absolute;
+    font-size: 20px;
+    opacity: 0.7;
+    color: red;
+    animation: crossFly 0.8s ease-out forwards;
+    z-index: 15;
+}
+
+@keyframes crossFly {
+    0% { transform: translate(0,0) rotate(0deg); opacity:1; }
+    100% { transform: translate(calc(-50px + 100px*var(--rand-x)), -150px) rotate(360deg); opacity:0; }
+}
+
+form input {
+    width: 100%;
+    padding: 15px 12px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    outline: none;
+    background: #fff;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+form input:focus {
+    border-color: #ff6f61;
+    box-shadow: 0 0 15px rgba(255,111,97,0.3);
+}
+
+form button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background: #ffd1dc;
+    font-size: 18px;
+    color: #555;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+form button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+.admin-link {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: rgba(85,85,85,0.3);
+    text-decoration: none;
+}
+
+.admin-link:hover { color: rgba(85,85,85,0.7); }
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width:480px){
+    h1{ font-size:22px; }
+    p{ font-size:16px; }
+    .timer{ font-size:18px; padding:8px 15px; }
+    form input, form button{ padding:12px; font-size:16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Задание</h1>
+    <p>{{ level.text }}</p>
+    <div class="timer">Время: <span id="timer">{{ elapsed }}</span> сек</div>
+    <form method="post" id="levelForm">
+        <input type="text" name="next_code" placeholder="Введите следующий код" required>
+        <button type="submit">Продолжить</button>
+    </form>
+</div>
+
+<a href="{{ url_for('admin_login') }}" class="admin-link">Admin</a>
+
+<script>
+// Таймер
+let t = parseInt(document.getElementById('timer').innerText);
+setInterval(()=>{ t++; document.getElementById('timer').innerText = t; },1000);
+
+// Разные смайлики для уровней
+let levelEmojis = {
+    1: ['💖','💗','💘','💝','❤️'],
+    2: ['🌈','✨','🌟','💫','🌸'],
+    3: ['🍀','🌼','🌷','🌹','🌻'],
+    4: ['⚡','🔥','💥','🌪','🌊']
+};
+let currentLevel = {{ level.id }};
+let emojis = levelEmojis[currentLevel] || ['💖','✨','🌸'];
+let numSmiles = 30 + Math.floor(Math.random()*20);
+
+for(let i=0;i<numSmiles;i++){
+    let span = document.createElement('span');
+    span.className='smile';
+    span.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+    span.style.left = Math.random()*100 + 'vw';
+    span.style.fontSize = (12 + Math.random()*16)+'px';
+    span.style.animationDuration = (4+Math.random()*4)+'s';
+    document.body.appendChild(span);
+}
+
+// Крестики при неправильном коде
+function showCrosses(num=10){
+    for(let i=0;i<num;i++){
+        let cross = document.createElement('span');
+        cross.className = 'cross';
+        cross.innerText = '✖️';
+        cross.style.left = (50 + (Math.random()-0.5)*100)+'vw';
+        cross.style.setProperty('--rand-x', Math.random());
+        cross.style.fontSize = (14 + Math.random()*20)+'px';
+        document.body.appendChild(cross);
+        setTimeout(()=>{ cross.remove(); },800);
+    }
+}
+
+// Проверка кода на клиенте
+document.getElementById('levelForm').addEventListener('submit', function(e){
+    let input = this.next_code.value.trim();
+    {% if level.next_code %}
+        let correct = "{{ level.next_code }}";
+    {% else %}
+        let correct = ""; // финальный уровень
+    {% endif %}
+    if(input !== correct){
+        e.preventDefault();
+        showCrosses(10);
+        this.next_code.value = '';
+    }
+});
+</script>
+
+</body>
+</html>

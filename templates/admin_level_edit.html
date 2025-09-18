@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Редактирование уровней</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+body {
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    background: linear-gradient(to bottom, #e6f0ff, #ffffff);
+    padding-top: 40px;
+}
+
+.container {
+    position: relative;
+    background: #ffffff;
+    padding: 30px 20px;
+    border-radius: 20px;
+    width: 95%;
+    max-width: 650px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+h1 { font-size: 28px; margin-bottom: 20px; color: #003366; }
+h2 { font-size: 22px; margin: 25px 0 15px; color: #0055aa; }
+
+.flash {
+    list-style:none;
+    margin-bottom:15px;
+    padding:10px;
+    border-radius:10px;
+    background:#d9edf7;
+    color:#31708f;
+}
+
+form input[type=text] {
+    width: calc(100% - 20px);
+    padding: 12px 10px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #99bbff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+form input[type=text]:focus {
+    border-color: #0055aa;
+    box-shadow: 0 0 10px rgba(0,85,170,0.3);
+}
+
+form label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #003366;
+    font-weight: 500;
+}
+
+form .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+form button, .form-actions a {
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+form button {
+    background: #0055aa;
+    color: #fff;
+    border: none;
+    font-size: 18px;
+}
+
+form button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,85,170,0.3);
+}
+
+.form-actions a {
+    background: #0077cc;
+    color: #fff;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.form-actions a:hover {
+    background: #0055aa;
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0,85,170,0.3);
+}
+
+ul.levels {
+    list-style:none;
+    margin-top:20px;
+    padding:0;
+}
+
+ul.levels li {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    padding:10px 15px;
+    margin-bottom:10px;
+    border-radius:12px;
+    background:#e6f0ff;
+    color:#003366;
+    font-weight:500;
+    transition: all 0.3s ease;
+    flex-wrap: wrap;
+}
+
+ul.levels li:hover { background:#cce0ff; }
+
+.level-info { flex:1; text-align:left; }
+
+.level-actions form {
+    display:inline-block;
+    margin-left:5px;
+}
+
+.level-actions button {
+    padding:6px 10px;
+    font-size:14px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    transition: all 0.3s ease;
+}
+
+.level-actions .edit-btn { background:#0077cc; color:#fff; }
+.level-actions .edit-btn:hover { background:#0055aa; }
+
+.level-actions .delete-btn { background:#cc0000; color:#fff; }
+.level-actions .delete-btn:hover { background:#990000; }
+
+.back-btn {
+    display:inline-block;
+    margin-top:20px;
+    padding:10px 20px;
+    border-radius:12px;
+    background:#003366;
+    color:#fff;
+    text-decoration:none;
+    font-weight:bold;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover { background:#0055aa; }
+
+@media (max-width:480px){
+    h1{ font-size:24px; }
+    h2{ font-size:20px; }
+    form input[type=text], form button, .form-actions a{ font-size:16px; padding:10px; }
+    ul.levels li { font-size:14px; padding:8px 10px; flex-direction: column; align-items: flex-start; }
+    .level-actions { margin-top:5px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Уровни квеста "{{ quest.name }}"</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash">
+          {% for msg in messages %}
+            <li>{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post"><input type="text" name="code" placeholder="Код уровня" required>
+        <input type="text" name="text" placeholder="Текст задания" required>
+        <input type="text" name="next_code" placeholder="Код следующего уровня">
+        <label><input type="checkbox" name="is_final"> Финальный уровень</label>
+
+        <div class="form-actions">
+            <button type="submit">Добавить уровень</button>
+            <a href="{{ url_for('admin_finish_text', quest_id=quest.id) }}">Редактировать текст финала</a>
+        </div>
+    </form>
+
+    <h2>Существующие уровни</h2>
+    <ul class="levels">
+        {% for level in levels %}
+        <li>
+            <div class="level-info">
+                {{ level.code }} → {{ level.next_code if level.next_code else 'Финальный' }}
+                {% if level.is_final %}(Финал){% endif %}
+            </div>
+            <div class="level-actions">
+                <form method="post" action="{{ url_for('admin_edit_level', level_id=level.id) }}">
+                    <button class="edit-btn" type="submit">Редактировать</button>
+                </form>
+                <form method="post" action="{{ url_for('admin_delete_level', level_id=level.id) }}">
+                    <button class="delete-btn" type="submit">Удалить</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="back-btn">← Назад</a>
+</div>
+
+</body>
+</html>

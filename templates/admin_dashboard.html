@@ -33,6 +33,7 @@ h2 { font-size: 22px; margin: 25px 0 15px; color: #0055aa; }
 ul {
     list-style: none;
     margin-bottom: 20px;
+    padding:0;
 }
 
 ul li {
@@ -46,21 +47,19 @@ ul li {
     color: #003366;
     font-weight: 500;
     transition: all 0.3s ease;
+    flex-wrap: wrap;
 }
 
-ul li:hover {
-    background: #cce0ff;
-}
+ul li:hover { background: #cce0ff; }
 
 ul li a {
     color: #0044aa;
     text-decoration: none;
     font-weight: bold;
+    margin-right: 8px;
 }
 
-ul li a:hover {
-    text-decoration: underline;
-}
+ul li a:hover { text-decoration: underline; }
 
 .start-code {
     font-size: 14px;
@@ -102,6 +101,20 @@ form button:hover {
     box-shadow: 0 6px 15px rgba(0,85,170,0.3);
 }
 
+.delete-btn {
+    background:#cc0000;
+    color:#fff;
+    border:none;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.delete-btn:hover {
+    background:#990000;
+}
+
 .back-btn {
     display:inline-block;
     margin-top:20px;
@@ -114,9 +127,7 @@ form button:hover {
     transition: all 0.3s ease;
 }
 
-.back-btn:hover {
-    background:#0055aa;
-}
+.back-btn:hover { background:#0055aa; }
 
 @media (max-width:480px){
     h1{ font-size:24px; }
@@ -134,13 +145,20 @@ form button:hover {
     <ul>
         {% for quest in quests %}
         <li>
-            {{ quest.name }}
-            {% if quest.levels|length > 0 %}
-                <span class="start-code">Код: {{ quest.levels[0].code }}</span>
-            {% else %}
-                <span class="start-code">Стартовый код: —</span>
-            {% endif %}
-            <a href="{{ url_for('admin_levels', quest_id=quest.id) }}">Редактировать уровни</a>
+            <div style="flex:1;">
+                {{ quest.name }}
+                {% if quest.levels|length > 0 %}
+                    <span class="start-code">Код: {{ quest.levels[0].code }}</span>
+                {% else %}
+                    <span class="start-code">Стартовый код: —</span>
+                {% endif %}
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:5px;">
+                <a href="{{ url_for('admin_levels', quest_id=quest.id) }}">Редактировать уровни</a>
+                <form method="post" action="{{ url_for('admin_delete_quest', quest_id=quest.id) }}" onsubmit="return confirm('Вы точно хотите удалить квест {{ quest.name }}? Все уровни будут удалены!');">
+                    <button type="submit" class="delete-btn">Удалить</button>
+                </form>
+            </div>
         </li>
         {% endfor %}
     </ul>
@@ -149,10 +167,7 @@ form button:hover {
     <form method="post" action="{{ url_for('admin_add_quest') }}">
         <input type="text" name="name" placeholder="Название квеста" required>
         <button type="submit">Создать</button>
-    </form>
-
-    <!-- Кнопка на главную страницу квеста -->
-    <a href="{{ url_for('player_start') }}" class="back-btn">← На главную страницу квеста</a>
+    </form><a href="{{ url_for('player_start') }}" class="back-btn">← На главную страницу квеста</a>
 </div>
 
 </body>

@@ -28,37 +28,10 @@ body {
 }
 
 h1 { font-size: 28px; margin-bottom: 20px; color: #003366; }
-h2 { font-size: 22px; margin: 25px 0 15px; color: #0055aa; }
 
 ul { list-style: none; margin-bottom: 20px; padding:0; }
 
-ul li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-    background: #e6f0ff;
-    color: #003366;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-ul li:hover { background: #cce0ff; }
-
-ul li a, ul li form button {
-    color: #0044aa;
-    text-decoration: none;
-    font-weight: bold;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-ul li form button:hover, ul li a:hover { text-decoration: underline; }
-
-form input[type="text"] {
+form input[type="text"], form textarea {
     width: 100%;
     padding: 14px 12px;
     margin-bottom: 15px;
@@ -69,7 +42,7 @@ form input[type="text"] {
     transition: all 0.3s ease;
 }
 
-form input[type="text"]:focus {
+form input[type="text"]:focus, form textarea:focus {
     border-color: #0055aa;
     box-shadow: 0 0 10px rgba(0,85,170,0.3);
 }
@@ -103,6 +76,10 @@ form button.submit-btn:hover {
     box-shadow: 0 6px 15px rgba(0,85,170,0.3);
 }
 
+form button.delete-btn {
+    background: #aa0000;
+}
+
 .back-btn {
     display: inline-block;
     margin-top: 15px;
@@ -124,9 +101,7 @@ form button.submit-btn:hover {
 
 @media (max-width:480px){
     h1{ font-size:24px; }
-    h2{ font-size:20px; }
-    form input, form button.submit-btn{ padding:12px; font-size:16px; }
-    ul li { font-size:14px; padding:8px 12px; }
+    form input, form textarea, form button.submit-btn{ padding:12px; font-size:16px; }
 }
 </style>
 </head>
@@ -149,12 +124,13 @@ form button.submit-btn:hover {
         <input type="text" name="code" placeholder="Код уровня" value="{{ level.code }}" required>
         <input type="text" name="text" placeholder="Текст задания" value="{{ level.text }}" required>
         <input type="text" name="next_code" placeholder="Код следующего уровня" value="{{ level.next_code }}">
+        <textarea name="hint" placeholder="Подсказка (появится через прогресс)" rows="2">{{ level.hint or '' }}</textarea>
         <label><input type="checkbox" name="is_final" {% if level.is_final %}checked{% endif %}> Финальный уровень</label>
         <button type="submit" class="submit-btn">Сохранить изменения</button>
     </form>
 
     <form method="post" action="{{ url_for('admin_delete_level', level_id=level.id) }}">
-        <button type="submit" class="submit-btn" style="background:#aa0000;">Удалить уровень</button>
+        <button type="submit" class="submit-btn delete-btn">Удалить уровень</button>
     </form>
 
     <a href="{{ url_for('admin_levels', quest_id=level.quest_id) }}" class="back-btn">← Назад к уровням</a>

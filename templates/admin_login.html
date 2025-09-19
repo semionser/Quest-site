@@ -4,11 +4,104 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Вход администратора</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+    body {
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .login-container {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        text-align: center;
+        width: 100%;
+        max-width: 350px;
+        animation: fadeIn 0.7s ease-in-out;
+    }
+
+    .login-container h1 {
+        margin-bottom: 20px;
+        color: #1e3c72;
+        font-size: 24px;
+    }
+
+    .login-container input {
+        width: 100%;
+        padding: 14px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border 0.3s;
+    }
+
+    .login-container input:focus {
+        border: 1px solid #2a5298;
+        outline: none;
+    }
+
+    .login-container button {
+        width: 100%;
+        padding: 14px;
+        background: #2a5298;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 12px;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .login-container button:hover {
+        background: #1e3c72;
+        transform: scale(1.03);
+    }
+
+    .flash {
+        background: #ffdddd;
+        border: 1px solid #ff5c5c;
+        color: #900;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 📱 Адаптивность для телефонов */
+    @media (max-width: 480px) {
+        .login-container {
+            padding: 20px;
+            max-width: 90%;
+        }
+        .login-container h1 {
+            font-size: 20px;
+        }
+        .login-container input,
+        .login-container button {
+            font-size: 15px;
+            padding: 12px;
+        }
+    }
+</style>
 </head>
 <body>
-<div class="container">
-    <h1>Вход администратора</h1>
+<div class="login-container">
+    <h1>🔑 Вход администратора</h1>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="flash">
@@ -18,6 +111,7 @@
         </div>
       {% endif %}
     {% endwith %}
+
     <form method="post">
         <input type="text" name="username" placeholder="Логин" required>
         <input type="password" name="password" placeholder="Пароль" required>

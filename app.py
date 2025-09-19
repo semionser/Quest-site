@@ -60,6 +60,7 @@ class Level(db.Model):
     text = db.Column(db.Text)
     next_code = db.Column(db.String(50), nullable=True)
     is_final = db.Column(db.Boolean, default=False)
+    hint = db.Column(db.Text, nullable=True)  # <-- новое поле
 
 # -------------------------
 # Telegram bot setup
@@ -147,7 +148,7 @@ def admin_login():
             session['user_id'] = user.id
             session['role'] = 'admin'
             return redirect(url_for('admin_dashboard'))
-        flash("Неверный логин или пароль")
+
     return render_template('admin_login.html')
 
 @app.route('/admin/logout')
@@ -162,6 +163,10 @@ def admin_dashboard():
     quests = admin.quests
     return render_template('admin_dashboard.html', quests=quests)
 
+
+
+
+
 @app.route('/admin/add_quest', methods=['POST'])
 @admin_required
 def admin_add_quest():
@@ -175,6 +180,19 @@ def admin_add_quest():
     flash("Квест создан!")
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/quest/<int:quest_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_quest(quest_id):
+    quest = Quest.query.get_or_404(quest_id)
+    # Удаляем все уровни квеста, чтобы не было зависимых записей
+    for level in quest.levels:
+        db.session.delete(level)
+    db.session.delete(quest)
+    db.session.commit()
+    flash(f'Квест "{quest.name}" и все его уровни удалены!')
+    return redirect(url_for('admin_dashboard'))
+
+
 @app.route('/admin/quest/<int:quest_id>/levels', methods=['GET', 'POST'])
 @admin_required
 def admin_levels(quest_id):
@@ -186,12 +204,16 @@ def admin_levels(quest_id):
         text = request.form.get('text', '').strip()
         next_code = request.form.get('next_code', '').strip() or None
         is_final = 'is_final' in request.form
+        hint = request.form.get('hint', '').strip()  # Новое поле
 
         existing_level = Level.query.filter_by(code=code, quest_id=quest.id).first()
         if existing_level:
             flash("Уровень с таким кодом уже существует!")
         else:
-            level = Level(code=code, text=text, next_code=next_code, quest_id=quest.id, is_final=is_final)
+            level = Level(
+                code=code, text=text, next_code=next_code,
+                quest_id=quest.id, is_final=is_final, hint=hint
+            )
             db.session.add(level)
             db.session.commit()
             flash("Уровень добавлен!")
@@ -209,6 +231,7 @@ def admin_edit_level(level_id):
         text = request.form.get('text', '').strip()
         next_code = request.form.get('next_code', '').strip() or None
         is_final = bool(request.form.get('is_final'))
+        hint = request.form.get('hint', '').strip()  # Подсказка
 
         if not code or not text:
             flash("Заполните все обязательные поля")
@@ -218,6 +241,7 @@ def admin_edit_level(level_id):
         level.text = text
         level.next_code = next_code
         level.is_final = is_final
+        level.hint = hint  # Сохраняем подсказку
 
         db.session.commit()
         flash("Уровень обновлён")
@@ -278,6 +302,7 @@ def player_start():
         flash("Неверный стартовый код")
     return render_template('player_start.html')
 
+
 @app.route('/level', methods=['GET', 'POST'])
 def player_level():
     if 'current_level' not in session:
@@ -287,40 +312,59 @@ def player_level():
     if not level:
         return redirect(url_for('player_start'))
 
-    elapsed = int(datetime.datetime.now().timestamp() - session.get('start_time', datetime.datetime.now().timestamp()))
+    # Инициализация времени в сессии
+    if 'start_time' not in session:
+        session['start_time'] = datetime.datetime.now().timestamp()
+    if 'elapsed_time' not in session:
+        session['elapsed_time'] = 0
+
+    # Прошедшее время с начала уровня
+    elapsed = int(datetime.datetime.now().timestamp() - session['start_time'])
+    total_elapsed = session['elapsed_time'] + elapsed
 
     if request.method == 'POST':
         next_code = request.form.get('next_code', '').strip()
+        use_hint = request.form.get('use_hint')
 
-        if level.is_final or not (level.next_code and level.next_code.strip()):
-            session['elapsed_time'] = elapsed
-            session.pop('current_level', None)
-            return redirect(url_for('player_finish'))
+        # Если игрок нажал "подсказку"
+        if use_hint:
+            session['hint_shown'] = True
+            return redirect(url_for('player_level'))
 
-        if next_code == (level.next_code or '').strip():
-            next_level = Level.query.filter_by(code=next_code).first()
+        # Проверка кода
+        if next_code == (level.next_code or '').strip() or level.is_final:
+            # Обновляем накопленное время
+            session['elapsed_time'] += elapsed
+            session['start_time'] = datetime.datetime.now().timestamp()  # сброс таймера на следующем уровне
+            session.pop('hint_shown', None)  # сброс подсказки
+
+            # Telegram уведомление
             try:
-                start_code = session.get('start_level', level.code)
-                chain = build_chain_from(start_code)
-                total = len(chain) or 1
-                idx = next((i for i, lv in enumerate(chain) if lv.code == level.code), None)
-                stage = (idx + 1) if idx is not None else 1
                 quest_name = level.quest.name if level.quest else "неизвестный"
-                send_telegram(f"Игрок прошёл этап {stage}/{total} квеста: {quest_name}")
+                send_telegram(f"Игрок прошёл уровень {level.code} квеста: {quest_name}")
             except Exception as e:
-                app.logger.exception("Ошибка при отправке телеграм уведомления этапа: %s", e)
+                app.logger.exception("Ошибка при отправке телеграм уведомления: %s", e)
 
+            # Переход на следующий уровень или финал
+            next_level = Level.query.filter_by(code=next_code).first()
             if next_level:
                 session['current_level'] = next_level.code
                 return redirect(url_for('player_level'))
             else:
-                session['elapsed_time'] = elapsed
                 session.pop('current_level', None)
                 return redirect(url_for('player_finish'))
 
         flash("Неверный код")
 
-    return render_template('player_level.html', level=level, elapsed=elapsed)
+    hint_shown = session.get('hint_shown', False)
+
+    return render_template(
+        'player_level.html',
+        level=level,
+        elapsed=elapsed,
+        hint_shown=hint_shown,
+        hint_delay=level.hint_delay if hasattr(level, 'hint_delay') else 30
+    )
 
 @app.route('/finish')
 def player_finish():
@@ -352,6 +396,14 @@ def player_finish():
 # Создание базы и запуск
 # -------------------------
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        # Создать админа по умолчанию
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', password=generate_password_hash('admin123'), role='admin')
+            db.session.add(admin)
+            db.session.commit()
+
     try:
         if bot and ADMIN_CHAT_ID:
             bot.send_message(ADMIN_CHAT_ID, "✅ Бот запущен и готов!")

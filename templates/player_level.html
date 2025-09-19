@@ -6,18 +6,32 @@
 <title>Задание</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { min-height: 100vh; display:flex; justify-content:center; align-items:center; color: #333; overflow: hidden; position: relative; }
 
+body {
+    min-height: 100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: #f0f4f8;
+    color: #333;
+    overflow: hidden;
+    position: relative;
+    transition: background 1s ease;
+}
+
+/* Смайлики */
 .smile { position: absolute; top: -30px; opacity: 0.7; animation: fall linear infinite; z-index: 1; pointer-events: none; }
 @keyframes fall { 0% { top: -30px; transform: rotate(0deg); opacity: 0.8; } 100% { top: 110%; transform: rotate(360deg); opacity: 0; } }
 
+/* Крестики */
 .cross { position: absolute; font-size: 20px; opacity: 0.9; color: red; animation: crossFly 0.8s ease-out forwards; z-index: 15; pointer-events: none; }
 @keyframes crossFly { 0% { transform: translate(0,0) rotate(0deg); opacity:1; } 100% { transform: translate(calc(-50px + 100px*var(--rand-x)), -150px) rotate(360deg); opacity:0; } }
 
-.container { position: relative; background: #fff9f7; padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); z-index: 10; transition: transform 0.1s; }
+.container { position: relative; background: #fff9f7; padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); z-index: 10; transition: background 1s ease; }
 h1 { font-size: 26px; margin-bottom: 20px; color: #555; }
 p { font-size: 18px; margin-bottom: 18px; line-height: 1.6; color: #444; }
 
+/* Прогресс-бар */
 .progress-container { width: 100%; background: #eee; border-radius: 12px; overflow: hidden; height: 20px; margin-bottom: 12px; }
 .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ff6f61, #ff9f80); transition: width 0.2s; box-shadow: inset 0 -3px 8px rgba(0,0,0,0.05); }
 .time-text { font-size: 14px; color: #666; margin-bottom: 14px; }
@@ -63,28 +77,37 @@ form button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0
 
 <a href="{{ url_for('admin_login') }}" class="admin-link">Admin</a>
 
+<!-- Звуки -->
+<audio id="correctSound" src="{{ url_for('static', filename='sounds/correct.mp3') }}"></audio>
+<audio id="wrongSound" src="{{ url_for('static', filename='sounds/wrong.mp3') }}"></audio>
+
 <script>
 let hintDelay = {{ hint_delay|default(30) }};
 let elapsed = 0;
 let progressEl = document.getElementById('progressBar');
 let remainingEl = document.getElementById('remaining');
 let hintForm = document.getElementById('hintForm');
-let hintBox = document.getElementById('hintBox');let hintShown = {{ hint_shown|default(false)|tojson }};
-let container = document.querySelector('.container');
+let hintBox = document.getElementById('hintBox');
+let hintShown = {{ hint_shown|default(false)|tojson }};
 
+// === Динамический фон для уровней ===
+let backgrounds = [
+    'linear-gradient(to bottom, #ffe6f0, #fff0f5)',
+    'linear-gradient(to bottom, #e6f0ff, #ffffff)',
+    'linear-gradient(to bottom, #e6ffe6, #f0fff0)',
+    'linear-gradient(to bottom, #fffbe6, #fff5e6)',
+    'linear-gradient(to bottom, #f0e6ff, #f5f0ff)'
+];
 let currentLevel = {{ level.id }};
-let emojiSets = [['💖','💗','💘','💝','❤️'],['🌈','✨','🌟','💫','🌸'],['🍀','🌼','🌷','🌹','🌻'],['⚡️','🔥','💥','🌪','🌊'],['🧩','🔎','🗝','📜','🕯']];
-let bgColors = ['linear-gradient(to bottom, #f0f4f8, #ffffff)','linear-gradient(to bottom, #ffe6f0, #fff0f5)','linear-gradient(to bottom, #e6ffe6, #f0fff0)','linear-gradient(to bottom, #fffbe6, #fff7e6)','linear-gradient(to bottom, #e6f0ff, #ffffff)'];
-document.body.style.background = bgColors[currentLevel % bgColors.length];
+document.body.style.background = backgrounds[currentLevel % backgrounds.length];
 
-// Прогресс и подсказка
+// === Прогресс и подсказка ===
 function updateProgress(){
     elapsed++;
     let percent = Math.min(elapsed / hintDelay * 100, 100);
     progressEl.style.width = percent + "%";
     document.getElementById('timer').innerText = elapsed;
-    let rem = Math.max(hintDelay - elapsed,0);
-    remainingEl.innerText = rem;
+    remainingEl.innerText = Math.max(hintDelay - elapsed,0);
     if(elapsed >= hintDelay){
         hintForm.style.display = 'block';
         clearInterval(progressInterval);
@@ -100,7 +123,14 @@ if(hintShown){
     var progressInterval = setInterval(updateProgress,1000);
 }
 
-// Смайлики
+// === Смайлики ===
+let emojiSets = [
+    ['💖','💗','💘','💝','❤️'],
+    ['🌈','✨','🌟','💫','🌸'],
+    ['🍀','🌼','🌷','🌹','🌻'],
+    ['⚡️','🔥','💥','🌪','🌊'],
+    ['🧩','🔎','🗝','📜','🕯']
+];
 let emojis = emojiSets[currentLevel % emojiSets.length] || emojiSets[0];
 let numSmiles = 30 + Math.floor(Math.random()*20);
 for(let i=0;i<numSmiles;i++){
@@ -114,7 +144,7 @@ for(let i=0;i<numSmiles;i++){
     document.body.appendChild(span);
 }
 
-// Крестики
+// === Крестики при ошибке ===
 function showCrosses(num=10){
     for(let i=0;i<num;i++){
         let cross = document.createElement('span');
@@ -129,43 +159,22 @@ function showCrosses(num=10){
     }
 }
 
-// Вибрация контейнера
-function shakeContainer(){
-    container.style.transform = 'translateX(-10px)';
-    setTimeout(()=> container.style.transform = 'translateX(10px)', 100);
-    setTimeout(()=> container.style.transform = 'translateX(0px)', 200);
-}
-
-// Конфетти при верном ответе
-function showConfetti(num=50){
-    for(let i=0;i<num;i++){
-        let c = document.createElement('span');
-        c.className = 'smile';
-        c.innerText = ['🎉','✨','💖','🌟','💫'][Math.floor(Math.random()*5)];
-        c.style.left = (Math.random()*100)+'vw';
-        c.style.top = '-10vh';
-        c.style.fontSize = (16 + Math.random()*24)+'px';
-        c.style.animationDuration = (2 + Math.random()*3)+'s';
-        document.body.appendChild(c);
-        setTimeout(()=> c.remove(), 3000);
-    }
-}
-
-// Проверка кода
+// === Проверка кода + звуки ===
 document.getElementById('levelForm').addEventListener('submit', function(e){
     let input = this.next_code.value.trim();
-    let correct = {{ (level.next_code or '')|tojson }} || "";
+    let correct = {{ (level.next_code or '')|tojson }};
+    if(correct === null) correct = "";
     if(input !== correct){
         e.preventDefault();
         showCrosses(12);
-        shakeContainer();
         this.next_code.value = '';
+        document.getElementById('wrongSound').play();
     } else {
-        showConfetti(30);
+        document.getElementById('correctSound').play();
     }
 });
 
-// Подсказка без перезагрузки
+// === Подсказка без перезагрузки ===
 hintForm.addEventListener('submit', function(e){
     e.preventDefault();
     hintBox.style.display = 'block';

@@ -410,4 +410,4 @@ if __name__ == "__main__":
     except Exception as e:
         print("Ошибка при отправке в Telegram:", e)
 
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

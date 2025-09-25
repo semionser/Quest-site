@@ -80,7 +80,7 @@ form button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0
 <!-- Звуки -->
 <audio id="correctSound" src="{{ url_for('static', filename='sounds/correct.mp3') }}"></audio>
 <audio id="wrongSound" src="{{ url_for('static', filename='sounds/wrong.mp3') }}"></audio>
-
+<audio id="tickSound" src="{{ url_for('static', filename='sounds/tick.mp3') }}" loop></audio>
 <script>
 let hintDelay = {{ hint_delay|default(30) }};
 let elapsed = 0;
@@ -100,6 +100,13 @@ let backgrounds = [
 ];
 let currentLevel = {{ level.id }};
 document.body.style.background = backgrounds[currentLevel % backgrounds.length];
+
+// === Основной таймер ===
+function updateTimer(){
+    elapsed++;
+    document.getElementById('timer').innerText = elapsed;
+}
+setInterval(updateTimer, 1000);
 
 // === Прогресс и подсказка ===
 function updateProgress(){
@@ -173,6 +180,24 @@ document.getElementById('levelForm').addEventListener('submit', function(e){
         document.getElementById('correctSound').play();
     }
 });
+// === Фоновое тиканье ===
+let tickSound = document.getElementById('tickSound');
+tickSound.volume = 0.08;
+
+// Если на предыдущей странице звук уже играл — запускаем снова
+if (localStorage.getItem("tickPlaying") === "true") {
+    tickSound.play().catch(()=>{});
+}
+
+// При первом клике пользователя — запускаем тиканье и запоминаем
+document.body.addEventListener("click", () => {
+    if (tickSound.paused) {
+        tickSound.play().then(()=>{
+            localStorage.setItem("tickPlaying", "true");
+        }).catch(()=>{});
+    }
+}, {once:true});
+
 
 // === Подсказка без перезагрузки ===
 hintForm.addEventListener('submit', function(e){

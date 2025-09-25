@@ -61,7 +61,9 @@ form button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0
     <div class="progress-container" aria-hidden="true">
         <div class="progress-bar" id="progressBar"></div>
     </div>
-    <div class="time-text">Время: <span id="timer">0</span> сек — подсказка через <span id="remaining">{{ hint_delay|default(30) }}</span> сек</div>
+   <div class="time-text">
+    Время: <span id="timer">0</span> — подсказка через <span id="remaining">{{ hint_delay|default(30) }}</span>
+</div>
 
     <form method="post" id="levelForm" autocomplete="off">
         <input type="text" name="next_code" placeholder="Введите следующий код" required>
@@ -101,31 +103,39 @@ let backgrounds = [
 let currentLevel = {{ level.id }};
 document.body.style.background = backgrounds[currentLevel % backgrounds.length];
 
-// === Основной таймер ===
+// === Основной таймер (минуты и секунды) ===
+function formatTime(seconds){
+    if(seconds < 60) return seconds + ' сек';
+    let mins = Math.floor(seconds / 60);
+    let secs = seconds % 60;
+    return mins + ' мин ' + secs + ' сек';
+}
+
 function updateTimer(){
     elapsed++;
-    document.getElementById('timer').innerText = elapsed;
+    document.getElementById('timer').innerText = formatTime(elapsed);
 }
 setInterval(updateTimer, 1000);
 
 // === Прогресс и подсказка ===
 function updateProgress(){
-    elapsed++;
+    if(elapsed >= hintDelay){
+        progressEl.style.width = "100%";
+        remainingEl.innerText = "Подсказка доступна";
+        hintForm.style.display = 'block';
+        clearInterval(progressInterval); // останавливаем только прогресс подсказки
+        return;
+    }
     let percent = Math.min(elapsed / hintDelay * 100, 100);
     progressEl.style.width = percent + "%";
-    document.getElementById('timer').innerText = elapsed;
-    remainingEl.innerText = Math.max(hintDelay - elapsed,0);
-    if(elapsed >= hintDelay){
-        hintForm.style.display = 'block';
-        clearInterval(progressInterval);
-    }
+    remainingEl.innerText = formatTime(hintDelay - elapsed);
 }
 
 if(hintShown){
     hintBox.style.display = 'block';
     hintForm.style.display = 'none';
     progressEl.style.width = '100%';
-    remainingEl.innerText = 0;
+    remainingEl.innerText = "Подсказка доступна";
 } else {
     var progressInterval = setInterval(updateProgress,1000);
 }

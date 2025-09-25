@@ -285,21 +285,30 @@ def admin_finish_text(quest_id):
 def player_start():
     if request.method == 'POST':
         start_code = request.form.get('start_code', '').strip()
-        level = Level.query.filter_by(code=start_code).first()
-        if level:
-            session['current_level'] = level.code
-            session['current_quest'] = level.quest_id
-            session['start_level'] = level.code
-            session['start_time'] = datetime.datetime.now().timestamp()
 
-            try:
-                quest_name = level.quest.name if level.quest else "неизвестный"
-                send_telegram(f"Игрок начал квест: {quest_name}")
-            except Exception as e:
-                app.logger.exception("Ошибка при отправке телеграм уведомления начала квеста: %s", e)
+        # Ищем квест, у которого первый уровень совпадает с введённым кодом
+        quest = Quest.query.join(Level).filter(Level.code == start_code).first()
 
-            return redirect(url_for('player_level'))
+        if quest:
+            # Берём именно ПЕРВЫЙ уровень квеста
+            first_level = Level.query.filter_by(quest_id=quest.id).order_by(Level.id.asc()).first()
+
+            if first_level and first_level.code == start_code:
+                session['current_level'] = first_level.code
+                session['current_quest'] = quest.id
+                session['start_level'] = first_level.code
+                session['start_time'] = datetime.datetime.now().timestamp()
+
+                try:
+                    quest_name = quest.name if quest else "неизвестный"
+                    send_telegram(f"Игрок начал квест: {quest_name}")
+                except Exception as e:
+                    app.logger.exception("Ошибка при отправке телеграм уведомления начала квеста: %s", e)
+
+                return redirect(url_for('player_level'))
+
         flash("Неверный стартовый код")
+
     return render_template('player_start.html')
 
 

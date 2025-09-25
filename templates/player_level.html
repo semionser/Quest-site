@@ -77,7 +77,7 @@ form button:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0
     <div class="hint" id="hintBox">{{ level.hint or "Подсказка пока недоступна" }}</div>
 </div>
 
-<a href="{{ url_for('admin_login') }}" class="admin-link">Admin</a>
+
 
 <!-- Звуки -->
 <audio id="correctSound" src="{{ url_for('static', filename='sounds/correct.mp3') }}"></audio>
@@ -132,6 +132,7 @@ function updateProgress(){
 }
 
 if(hintShown){
+
     hintBox.style.display = 'block';
     hintForm.style.display = 'none';
     progressEl.style.width = '100%';
@@ -166,7 +167,7 @@ function showCrosses(num=10){
     for(let i=0;i<num;i++){
         let cross = document.createElement('span');
         cross.className = 'cross';
-        cross.innerText = '✖️';
+        cross.innerText = '❌';
         cross.style.left = (50+(Math.random()-0.5)*60)+'vw';
         cross.style.top = (40+(Math.random()-0.5)*20)+'vh';
         cross.style.setProperty('--rand-x', Math.random());
@@ -192,7 +193,7 @@ document.getElementById('levelForm').addEventListener('submit', function(e){
 });
 // === Фоновое тиканье ===
 let tickSound = document.getElementById('tickSound');
-tickSound.volume = 0.08;
+tickSound.volume = 0.05;
 
 // Если на предыдущей странице звук уже играл — запускаем снова
 if (localStorage.getItem("tickPlaying") === "true") {

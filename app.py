@@ -377,9 +377,14 @@ def player_level():
 
 @app.route('/finish')
 def player_finish():
-    elapsed_time = session.pop('elapsed_time', 0)
+    elapsed_time = session.pop('elapsed_time', 0)  # в секундах
     quest_id = session.pop('current_quest', None)
     start_level = session.pop('start_level', None)
+
+    # --- Форматируем время для вывода ---
+    minutes = elapsed_time // 60
+    seconds = elapsed_time % 60
+    elapsed_formatted = f"{minutes} мин {seconds} сек" if minutes else f"{seconds} сек"
 
     finish_text = None
     quest_name = "неизвестный"
@@ -399,7 +404,12 @@ def player_finish():
     except Exception as e:
         app.logger.exception("Ошибка при отправке телеграм уведомления финиша: %s", e)
 
-    return render_template('player_finish.html', elapsed=elapsed_time, finish_text=finish_text)
+    # --- Передаём уже форматированное время в шаблон ---
+    return render_template(
+        'player_finish.html',
+        elapsed=elapsed_formatted,
+        finish_text=finish_text
+    )
 
 # -------------------------
 # Создание базы и запуск
